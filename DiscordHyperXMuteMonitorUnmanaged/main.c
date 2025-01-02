@@ -5,44 +5,53 @@ WCHAR LibraryPath[MAX_PATH];
 HMODULE ApplicationModule;
 WCHAR ApplicationPath[MAX_PATH];
 
-static void InitializeLibrary(HMODULE module)
+static BOOL InitializeLibrary(HMODULE module)
 {
+    DisableThreadLibraryCalls(module);
+
+    OutputDebugStringW(DEBUG_PREFIX L"Hello, world! *waves my paw*");
+
     LibraryModule = module;
-    GetModuleFileNameW(LibraryModule, LibraryPath, MAX_PATH);
+    if (GetModuleFileNameW(LibraryModule, LibraryPath, MAX_PATH) == 0)
+    {
+        OutputDebugStringW(DEBUG_PREFIX L"Failed to get LibraryPath with GetModuleFileNameW");
+        return FALSE;
+    }
+
     ApplicationModule = GetModuleHandleW(NULL);
-    GetModuleFileNameW(ApplicationModule, ApplicationPath, MAX_PATH);
-}
-
-static void UnloadLibrary()
-{
-    FreeLibraryAndExitThread(LibraryModule, 0);
-}
-
-SETTINGS Settings;
-
-static DWORD ReadRegistryValue(HKEY key, LPCWSTR name, DWORD defaultValue)
-{
-    DWORD value;
-    DWORD valueSize = sizeof(value);
-    if (RegQueryValueExW(key, name, NULL, NULL, (LPBYTE)&value, &valueSize) != ERROR_SUCCESS)
+    if (GetModuleFileNameW(ApplicationModule, ApplicationPath, MAX_PATH) == 0)
     {
-        value = defaultValue;
+        OutputDebugStringW(DEBUG_PREFIX L"Failed to get ApplicationPath with GetModuleFileNameW, possibly due to GetModuleHandleW");
+        return FALSE;
     }
-    return value;
+
+    if (!InitializeHeap())
+    {
+        OutputDebugStringW(DEBUG_PREFIX L"Failed to initialize heap");
+        return FALSE;
+    }
+
+    if (StringIndexOf(ApplicationPath, L"NGenuity2Helper", FALSE) >= 0)
+    {
+        HANDLE thread = CreateThread(NULL, 0, NgenuityMonitorBootstrapThreadProc, NULL, 0, NULL);
+        if (!thread)
+        {
+            DebugFormatError(GetLastError(), L"Failed to start NgenuityMonitorBootstrapThreadProc thread");
+            return FALSE;
+        }
+    }
+
+    return TRUE;
 }
 
-void ReadSettings(void)
+static void FinalizeLibrary(void)
 {
-    HKEY key;
-    if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\DiscordHyperXMuteTool", 0, KEY_READ, &key) == ERROR_SUCCESS)
+    if (!FinalizeHeap())
     {
-        Settings.Enabled = ReadRegistryValue(key, L"Enabled", TRUE) != FALSE;
-        Settings.RunOnStartup = ReadRegistryValue(key, L"RunOnStartup", FALSE) != FALSE;
-        Settings.SyncWithDiscord = ReadRegistryValue(key, L"SyncWithDiscord", TRUE) != FALSE;
-        Settings.OnMuteKey = ReadRegistryValue(key, L"OnMuteKey", VK_F20);
-        Settings.OnUnmuteKey = ReadRegistryValue(key, L"OnUnmuteKey", VK_F20);
-        RegCloseKey(key);
+        OutputDebugStringW(DEBUG_PREFIX L"Failed to finalize heap");
     }
+
+    OutputDebugStringW(DEBUG_PREFIX L"Goodbye, see you later!");
 }
 
 DLLEXPORT BOOL APIENTRY DllMain(HMODULE module, DWORD reason, LPVOID reserved)
@@ -50,12 +59,12 @@ DLLEXPORT BOOL APIENTRY DllMain(HMODULE module, DWORD reason, LPVOID reserved)
     switch (reason)
     {
     case DLL_PROCESS_ATTACH:
-        DisableThreadLibraryCalls(module);
-        InitializeLibrary(module);
+        return InitializeLibrary(module);
+    case DLL_PROCESS_DETACH:
+        if (!reserved) FinalizeLibrary();
         break;
     case DLL_THREAD_ATTACH:
     case DLL_THREAD_DETACH:
-    case DLL_PROCESS_DETACH:
         break;
     }
     return TRUE;

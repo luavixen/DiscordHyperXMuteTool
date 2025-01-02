@@ -3,18 +3,23 @@
 
 static HANDLE heap = NULL;
 
-HRESULT InitializeHeap(void)
+BOOL InitializeHeap(void)
 {
     if (!heap)
     {
         heap = HeapCreate(0, 0, 0);
-        return heap ? S_OK : HRESULT_FROM_WIN32(GetLastError());
+        return heap ? TRUE : FALSE;
     }
-    return S_OK;
+    return TRUE;
 }
-void FinalizeHeap(void)
+BOOL FinalizeHeap(void)
 {
-    if (heap) HeapDestroy(heap);
+    if (heap)
+    {
+        BOOL result = HeapDestroy(heap); heap = NULL;
+        return result;
+    }
+    return TRUE;
 }
 
 DLLEXPORT LPVOID WINAPI Allocate(SIZE_T size)
@@ -41,7 +46,8 @@ BOOL StringEquals(LPCWSTR left, LPCWSTR right)
     return wcscmp(left, right) == 0;
 }
 
-SSIZE_T StringIndexOf(LPCWSTR haystack, LPCWSTR needle, BOOL isCaseSensitive) {
+SSIZE_T StringIndexOf(LPCWSTR haystack, LPCWSTR needle, BOOL isCaseSensitive)
+{
     if (!haystack || !needle) return -1;
 
     SIZE_T haystackLength = StringLength(haystack);
@@ -98,6 +104,8 @@ LPWSTR StringCopy(LPCWSTR string)
 
 LPWSTR StringConcat(LPCWSTR first, ...)
 {
+    if (!first) return NULL;
+
     va_list arguments1, arguments2;
     va_start(arguments1, first);
     va_copy(arguments2, arguments1);
@@ -108,7 +116,8 @@ LPWSTR StringConcat(LPCWSTR first, ...)
 
     SIZE_T length = StringLength(first);
 
-    while ((current = va_arg(arguments1, LPCWSTR)) != NULL) {
+    while ((current = va_arg(arguments1, LPCWSTR)) != NULL)
+    {
         length += StringLength(current);
     }
 
@@ -177,7 +186,7 @@ LPWSTR StringFormat(LPCWSTR format, ...)
 DLLEXPORT void WINAPI Debug(LPCWSTR message)
 {
     if (!message) return;
-    LPWSTR messagePrefixed = StringConcat(L"[DiscordHyperXMuteMonitor] ", message, NULL);
+    LPWSTR messagePrefixed = StringConcat(DEBUG_PREFIX, message, NULL);
     if (messagePrefixed)
     {
         OutputDebugStringW(messagePrefixed);
@@ -203,7 +212,8 @@ void DebugFormat(LPCWSTR format, ...)
     LPWSTR buffer = FormatWithKnownLength(length, format, arguments2);
     va_end(arguments2);
 
-    if (buffer) {
+    if (buffer)
+    {
         Debug(buffer);
         Free(buffer);
     }

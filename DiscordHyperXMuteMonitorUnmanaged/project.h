@@ -11,13 +11,15 @@
 #define DLLEXPORT __declspec(dllexport)
 #endif
 
+#define DEBUG_PREFIX L"[DiscordHyperXMuteMonitor] "
+
 DLLEXPORT void WINAPI Debug(LPCWSTR message);
 
 void DebugFormat(LPCWSTR format, ...);
 void DebugFormatError(DWORD error, LPCWSTR format, ...);
 
-HRESULT InitializeHeap(void);
-void FinalizeHeap(void);
+BOOL InitializeHeap(void);
+BOOL FinalizeHeap(void);
 
 DLLEXPORT LPVOID WINAPI Allocate(SIZE_T size);
 DLLEXPORT void WINAPI Free(LPVOID pointer);
@@ -43,15 +45,3 @@ extern HMODULE ApplicationModule;
 extern WCHAR ApplicationPath[MAX_PATH];
 
 DWORD WINAPI NgenuityMonitorBootstrapThreadProc(LPVOID parameter);
-
-typedef struct _SETTINGS {
-    BOOL Enabled;
-    BOOL RunOnStartup;
-    BOOL SyncWithDiscord;
-    DWORD OnMuteKey;
-    DWORD OnUnmuteKey;
-} SETTINGS;
-
-extern SETTINGS Settings;
-
-void ReadSettings(void);
