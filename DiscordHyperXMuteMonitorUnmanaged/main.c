@@ -2,43 +2,65 @@
 
 HMODULE LibraryModule;
 WCHAR LibraryPath[MAX_PATH];
-HMODULE ApplicationModule;
-WCHAR ApplicationPath[MAX_PATH];
+HMODULE ExecutableModule;
+WCHAR ExecutablePath[MAX_PATH];
+
+static BOOL InitializeLibraryInNgenuity(void)
+{
+    HANDLE thread = CreateThread(NULL, 0, NgenuityMonitorBootstrapThreadProc, NULL, 0, NULL);
+    if (!thread)
+    {
+        DebugFormatError(GetLastError(), L"CreateThread failed to start NgenuityMonitorBootstrapThreadProc thread");
+        return FALSE;
+    }
+    else
+    {
+        return TRUE;
+    }
+}
+static BOOL InitializeLibraryInExplorer(void)
+{
+    return TRUE;
+}
 
 static BOOL InitializeLibrary(HMODULE module)
 {
     DisableThreadLibraryCalls(module);
 
-    OutputDebugStringW(DEBUG_PREFIX L"Hello, world! *waves my paw*");
-
     LibraryModule = module;
     if (GetModuleFileNameW(LibraryModule, LibraryPath, MAX_PATH) == 0)
     {
-        OutputDebugStringW(DEBUG_PREFIX L"Failed to get LibraryPath with GetModuleFileNameW");
+        OutputDebugStringW(DEBUG_PREFIX L"GetModuleFileNameW failed to get LibraryPath\n");
         return FALSE;
     }
 
-    ApplicationModule = GetModuleHandleW(NULL);
-    if (GetModuleFileNameW(ApplicationModule, ApplicationPath, MAX_PATH) == 0)
+    ExecutableModule = GetModuleHandleW(NULL);
+    if (GetModuleFileNameW(ExecutableModule, ExecutablePath, MAX_PATH) == 0)
     {
-        OutputDebugStringW(DEBUG_PREFIX L"Failed to get ApplicationPath with GetModuleFileNameW, possibly due to GetModuleHandleW");
+        OutputDebugStringW(DEBUG_PREFIX L"GetModuleFileNameW failed to get ExecutablePath, possibly due to GetModuleHandleW\n");
         return FALSE;
     }
 
     if (!InitializeHeap())
     {
-        OutputDebugStringW(DEBUG_PREFIX L"Failed to initialize heap");
+        OutputDebugStringW(DEBUG_PREFIX L"Failed to initialize heap\n");
         return FALSE;
     }
 
-    if (StringIndexOf(ApplicationPath, L"NGenuity2Helper", FALSE) >= 0)
+    if (StringIndexOf(LibraryPath, MONITOR_UNMANAGED_FILENAME, FALSE) < 0)
     {
-        HANDLE thread = CreateThread(NULL, 0, NgenuityMonitorBootstrapThreadProc, NULL, 0, NULL);
-        if (!thread)
-        {
-            DebugFormatError(GetLastError(), L"Failed to start NgenuityMonitorBootstrapThreadProc thread");
-            return FALSE;
-        }
+        DebugFormat(L"Unexpected LibraryPath: %s\n", LibraryPath);
+    }
+
+    if (StringIndexOf(ExecutablePath, NGENUITY_PROCESS_NAME, FALSE) >= 0)
+    {
+        Debug(L"Attached to NGENUITY (via injection) *waves my paw*\n");
+        return InitializeLibraryInNgenuity();
+    }
+    if (StringIndexOf(ExecutablePath, EXPLORER_PROCESS_NAME, FALSE) >= 0)
+    {
+        Debug(L"Attached to Explorer (via hook) *waves my paw*\n");
+        return InitializeLibraryInExplorer();
     }
 
     return TRUE;
@@ -48,10 +70,10 @@ static void FinalizeLibrary(void)
 {
     if (!FinalizeHeap())
     {
-        OutputDebugStringW(DEBUG_PREFIX L"Failed to finalize heap");
+        OutputDebugStringW(DEBUG_PREFIX L"Failed to finalize heap\n");
     }
 
-    OutputDebugStringW(DEBUG_PREFIX L"Goodbye, see you later!");
+    OutputDebugStringW(DEBUG_PREFIX L"Detaching, goodbye!\n");
 }
 
 DLLEXPORT BOOL APIENTRY DllMain(HMODULE module, DWORD reason, LPVOID reserved)

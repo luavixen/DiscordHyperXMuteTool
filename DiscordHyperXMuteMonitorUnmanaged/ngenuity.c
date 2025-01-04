@@ -22,6 +22,7 @@ DLLEXPORT LPWSTR WINAPI InjectMonitorIntoNgenuityProcess(DWORD processID)
     LPWSTR result = NULL;
 
     HANDLE process = NULL;
+    WCHAR processPath[MAX_PATH] = { 0 };
 
     LPVOID remoteLibraryPathBuffer = NULL;
     HANDLE remoteThread = NULL;
@@ -29,7 +30,7 @@ DLLEXPORT LPWSTR WINAPI InjectMonitorIntoNgenuityProcess(DWORD processID)
     LPTHREAD_START_ROUTINE loadLibraryProcedure = FindLoadLibraryProcedure();
     if (!loadLibraryProcedure)
     {
-        result = FormatErrorWithExplanation(GetLastError(), L"Injection failed to find LoadLibraryW procedure in kernel32.dll");
+        result = FormatErrorWithExplanation(GetLastError(), L"Failed to find LoadLibraryW procedure in kernel32.dll?");
         goto exit;
     }
 
@@ -39,7 +40,18 @@ DLLEXPORT LPWSTR WINAPI InjectMonitorIntoNgenuityProcess(DWORD processID)
     );
     if (!process)
     {
-        result = FormatErrorWithExplanation(GetLastError(), L"Injection failed to open target process");
+        result = FormatErrorWithExplanation(GetLastError(), L"OpenProcess failed");
+        goto exit;
+    }
+
+    if (!GetProcessPath(process, processPath)) {
+        result = FormatErrorWithExplanation(GetLastError(), L"QueryFullProcessImageNameW failed");
+        goto exit;
+    }
+
+    if (StringIndexOf(processPath, NGENUITY_PROCESS_NAME, FALSE) < 0)
+    {
+        result = StringFormat(L"Unexpected process path: %s", processPath);
         goto exit;
     }
 
@@ -52,20 +64,18 @@ DLLEXPORT LPWSTR WINAPI InjectMonitorIntoNgenuityProcess(DWORD processID)
     );
     if (!remoteLibraryPathBuffer)
     {
-        result = FormatErrorWithExplanation(GetLastError(), L"Injection failed to allocate memory in target process");
+        result = FormatErrorWithExplanation(GetLastError(), L"VirtualAllocEx failed");
         goto exit;
     }
 
-    BOOL writeProcessMemorySuccess = WriteProcessMemory(
+    if (!WriteProcessMemory(
         process,
         remoteLibraryPathBuffer,
         LibraryPath,
         sizeof(LibraryPath),
         NULL
-    );
-    if (!writeProcessMemorySuccess)
-    {
-        result = FormatErrorWithExplanation(GetLastError(), L"Injection failed to write memory in target process");
+    )) {
+        result = FormatErrorWithExplanation(GetLastError(), L"WriteProcessMemory failed");
         goto exit;
     }
 
@@ -80,21 +90,30 @@ DLLEXPORT LPWSTR WINAPI InjectMonitorIntoNgenuityProcess(DWORD processID)
     );
     if (!remoteThread)
     {
-        result = FormatErrorWithExplanation(GetLastError(), L"Injection failed to create remote thread in target process");
+        result = FormatErrorWithExplanation(GetLastError(), L"CreateRemoteThread failed");
         goto exit;
     }
 
     WaitForSingleObject(remoteThread, INFINITE);
 
 exit:
-    if (remoteThread) CloseHandle(remoteThread);
-    if (remoteLibraryPathBuffer) VirtualFreeEx(process, remoteLibraryPathBuffer, 0, MEM_RELEASE);
-    if (process) CloseHandle(process);
+    if (remoteThread)
+    {
+        CloseHandle(remoteThread);
+    }
+    if (remoteLibraryPathBuffer)
+    {
+        VirtualFreeEx(process, remoteLibraryPathBuffer, 0, MEM_RELEASE);
+    }
+    if (process)
+    {
+        CloseHandle(process);
+    }
 
     return result;
 }
 
-static ICLRRuntimeHost* GetRuntimeHost()
+static ICLRRuntimeHost* GetRuntimeHost(void)
 {
     HRESULT result = S_OK;
 
@@ -105,27 +124,33 @@ static ICLRRuntimeHost* GetRuntimeHost()
     result = CLRCreateInstance(&CLSID_CLRMetaHost, &IID_ICLRMetaHost, &clrMetaHost);
     if (FAILED(result))
     {
-        DebugFormatError(result, L"Failed to create ICLRMetaHost");
+        DebugFormatError(result, L"CLRCreateInstance failed to create ICLRMetaHost");
         goto exit;
     }
 
     result = clrMetaHost->lpVtbl->GetRuntime(clrMetaHost, L"v4.0.30319", &IID_ICLRRuntimeInfo, &clrRuntimeInfo);
     if (FAILED(result))
     {
-        DebugFormatError(result, L"Failed to get ICLRRuntimeInfo from ICLRMetaHost->GetRuntime");
+        DebugFormatError(result, L"ICLRMetaHost->GetRuntime failed to get ICLRRuntimeInfo");
         goto exit;
     }
 
     result = clrRuntimeInfo->lpVtbl->GetInterface(clrRuntimeInfo, &CLSID_CLRRuntimeHost, &IID_ICLRRuntimeHost, &clrRuntimeHost);
     if (FAILED(result))
     {
-        DebugFormatError(result, L"Failed to get ICLRRuntimeHost from ICLRRuntimeInfo->GetInterface");
+        DebugFormatError(result, L"ICLRRuntimeInfo->GetInterface failed to get ICLRRuntimeHost");
         goto exit;
     }
 
 exit:
-    if (clrMetaHost) clrMetaHost->lpVtbl->Release(clrMetaHost);
-    if (clrRuntimeInfo) clrRuntimeInfo->lpVtbl->Release(clrRuntimeInfo);
+    if (clrMetaHost)
+    {
+        clrMetaHost->lpVtbl->Release(clrMetaHost);
+    }
+    if (clrRuntimeInfo)
+    {
+        clrRuntimeInfo->lpVtbl->Release(clrRuntimeInfo);
+    }
 
     return clrRuntimeHost;
 }
@@ -158,31 +183,34 @@ static void ExecuteAssemblyInRuntime(
         switch (result)
         {
         case HOST_E_CLRNOTAVAILABLE:
-            Debug(L"Failed to execute managed DLL, CLR is not available\n");
+            Debug(L"ExecuteInDefaultAppDomain failed, CLR is not available\n");
             break;
         case HOST_E_TIMEOUT:
-            Debug(L"Failed to execute managed DLL, call timed out\n");
+            Debug(L"ExecuteInDefaultAppDomain failed, call timed out\n");
             break;
         case HOST_E_NOT_OWNER:
-            Debug(L"Failed to execute managed DLL, caller does not own lock\n");
+            Debug(L"ExecuteInDefaultAppDomain failed, caller does not own lock\n");
             break;
         case HOST_E_ABANDONED:
-            Debug(L"Failed to execute managed DLL, event was canceled\n");
+            Debug(L"ExecuteInDefaultAppDomain failed, event was canceled\n");
             break;
         case COR_E_MISSINGMETHOD:
-            Debug(L"Failed to execute managed DLL, method not found\n");
+            Debug(L"ExecuteInDefaultAppDomain failed, method not found\n");
+            break;
+        case COR_E_TYPELOAD:
+            Debug(L"ExecuteInDefaultAppDomain failed, type failed to load\n");
             break;
         case E_FAIL:
-            Debug(L"Failed to execute managed DLL, unknown catastrophic failure occurred\n");
+            Debug(L"ExecuteInDefaultAppDomain failed, unknown catastrophic failure occurred\n");
             break;
         default:
-            DebugFormatError(result, L"Failed to execute managed DLL, unknown error occurred");
+            DebugFormatError(result, L"ExecuteInDefaultAppDomain failed, unknown error occurred");
             break;
         }
     }
 }
 
-DWORD WINAPI NgenuityMonitorBootstrapThreadProc(LPVOID parameter)
+DLLEXPORT DWORD WINAPI NgenuityMonitorBootstrapThreadProc(LPVOID parameter)
 {
     ICLRRuntimeHost* clrRuntimeHost = GetRuntimeHost();
 
@@ -191,11 +219,11 @@ DWORD WINAPI NgenuityMonitorBootstrapThreadProc(LPVOID parameter)
         WCHAR assemblyPath[MAX_PATH] = { 0 };
         StringCopyInto(assemblyPath, LibraryPath);
         PathRemoveFileSpecW(assemblyPath);
-        PathAppendW(assemblyPath, L"DiscordHyperXMuteMonitorUnmanaged.dll");
+        PathAppendW(assemblyPath, MONITOR_MANAGED_FILENAME);
 
-        LPWSTR assemblyTypeName = L"DiscordHyperXMuteMonitor.Main";
-        LPWSTR assemblyMethodName = L"Start";
-        LPWSTR assemblyArgument = L"";
+        LPCWSTR assemblyTypeName = L"DiscordHyperXMuteMonitorManaged.Monitor";
+        LPCWSTR assemblyMethodName = L"Start";
+        LPCWSTR assemblyArgument = L"";
 
         ExecuteAssemblyInRuntime(clrRuntimeHost, assemblyPath, assemblyTypeName, assemblyMethodName, assemblyArgument);
 

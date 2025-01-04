@@ -24,6 +24,12 @@
     <ClCompile Include="utilities.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="explorer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="window.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="project.h">

@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiscordHyperXMuteTool", "Di
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DiscordHyperXMuteMonitorUnmanaged", "DiscordHyperXMuteMonitorUnmanaged\DiscordHyperXMuteMonitorUnmanaged.vcxproj", "{83DEF744-5EA5-4F23-B085-2AF476747F2F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiscordHyperXMuteMonitorManaged", "DiscordHyperXMuteMonitorManaged\DiscordHyperXMuteMonitorManaged.csproj", "{0E5B372C-1CE8-4B76-9865-E188439C9FD6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,10 @@ Global
 		{83DEF744-5EA5-4F23-B085-2AF476747F2F}.Debug|x64.Build.0 = Debug|x64
 		{83DEF744-5EA5-4F23-B085-2AF476747F2F}.Release|x64.ActiveCfg = Release|x64
 		{83DEF744-5EA5-4F23-B085-2AF476747F2F}.Release|x64.Build.0 = Release|x64
+		{0E5B372C-1CE8-4B76-9865-E188439C9FD6}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0E5B372C-1CE8-4B76-9865-E188439C9FD6}.Debug|x64.Build.0 = Debug|Any CPU
+		{0E5B372C-1CE8-4B76-9865-E188439C9FD6}.Release|x64.ActiveCfg = Release|Any CPU
+		{0E5B372C-1CE8-4B76-9865-E188439C9FD6}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

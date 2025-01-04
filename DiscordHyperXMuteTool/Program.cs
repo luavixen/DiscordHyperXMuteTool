@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 using DiscordHyperXMuteTool.Properties;
 
@@ -10,14 +12,30 @@ namespace DiscordHyperXMuteTool
         public static readonly State State = new State();
         public static readonly Settings Settings = new Settings();
 
+        public static MessageWindow MessageWindow { get; private set; }
+
         [STAThread]
         private static void Main()
         {
+            AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+
             Settings.Initialize();
+
+            Unmanaged.ConvertError(Unmanaged.InjectMonitorIntoNgenuityProcess(Process.GetProcessesByName("NGenuity2Helper").First().Id));
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+
+            MessageWindow = new MessageWindow();
+
             Application.Run(new TrayApplicationContext());
-            State.Dispose();
+        }
+
+        private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            string title = Application.ProductName;
+            string message = $"An unhandled exception occurred: {e.ExceptionObject}";
+            MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 

@@ -1,22 +1,22 @@
 #include "project.h"
 #include <wchar.h>
 
-static HANDLE heap = NULL;
+static HANDLE Heap = NULL;
 
 BOOL InitializeHeap(void)
 {
-    if (!heap)
+    if (!Heap)
     {
-        heap = HeapCreate(0, 0, 0);
-        return heap ? TRUE : FALSE;
+        Heap = HeapCreate(0, 0, 0);
+        return Heap ? TRUE : FALSE;
     }
     return TRUE;
 }
 BOOL FinalizeHeap(void)
 {
-    if (heap)
+    if (Heap)
     {
-        BOOL result = HeapDestroy(heap); heap = NULL;
+        BOOL result = HeapDestroy(Heap); Heap = NULL;
         return result;
     }
     return TRUE;
@@ -24,14 +24,14 @@ BOOL FinalizeHeap(void)
 
 DLLEXPORT LPVOID WINAPI Allocate(SIZE_T size)
 {
-    if (!heap) return NULL;
-    return HeapAlloc(heap, HEAP_ZERO_MEMORY, size);
+    if (!Heap) return NULL;
+    return HeapAlloc(Heap, HEAP_ZERO_MEMORY, size);
 }
 DLLEXPORT void WINAPI Free(LPVOID pointer)
 {
-    if (!heap) return;
+    if (!Heap) return;
     if (!pointer) return;
-    HeapFree(heap, 0, pointer);
+    HeapFree(Heap, 0, pointer);
 }
 
 SIZE_T StringLength(LPCWSTR string)
@@ -272,4 +272,33 @@ DLLEXPORT LPWSTR WINAPI StringifyError(DWORD error)
     return count > 0
         ? StringFormat(L"0x%08X %s", error, buffer)
         : StringFormat(L"0x%08X\n", error);
+}
+
+BOOL GetProcessPath(HANDLE process, LPWSTR buffer)
+{
+    if (!process || !buffer) return FALSE;
+    DWORD length = MAX_PATH;
+    if (QueryFullProcessImageNameW(process, 0, buffer, &length))
+    {
+        return TRUE;
+    }
+    else
+    {
+        buffer[0] = L'\0';
+        return FALSE;
+    }
+}
+
+BOOL GetProcessPathByID(DWORD processID, LPWSTR buffer)
+{
+    if (!buffer) return FALSE;
+
+    HANDLE process = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, processID);
+    if (!process) return FALSE;
+
+    BOOL result = GetProcessPath(process, buffer);
+
+    CloseHandle(process);
+
+    return result;
 }
