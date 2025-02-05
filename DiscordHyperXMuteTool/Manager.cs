@@ -319,6 +319,8 @@ namespace DiscordHyperXMuteTool
                     break;
                 }
             }
+
+            Program.State.Update();
         }
     }
 }
