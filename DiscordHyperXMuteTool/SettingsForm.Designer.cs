@@ -33,10 +33,10 @@
             this.titleLabel = new System.Windows.Forms.Label();
             this.descriptionLabel = new System.Windows.Forms.Label();
             this.ngenuityStatusPictureBox = new System.Windows.Forms.PictureBox();
-            this.microphoneStatusPictureBox = new System.Windows.Forms.PictureBox();
+            this.ngenuityMicStatusPictureBox = new System.Windows.Forms.PictureBox();
             this.discordStatusPictureBox = new System.Windows.Forms.PictureBox();
             this.ngenuityStatusLabel = new System.Windows.Forms.Label();
-            this.microphoneStatusLabel = new System.Windows.Forms.Label();
+            this.ngenuityMicStatusLabel = new System.Windows.Forms.Label();
             this.discordStatusLabel = new System.Windows.Forms.Label();
             this.enabledCheckBox = new System.Windows.Forms.CheckBox();
             this.runOnStartupCheckBox = new System.Windows.Forms.CheckBox();
@@ -55,10 +55,13 @@
             this.versionLabel = new System.Windows.Forms.Label();
             this.copyrightLinkLabel1 = new System.Windows.Forms.LinkLabel();
             this.copyrightLabel2 = new System.Windows.Forms.Label();
+            this.discordMicStatusLabel = new System.Windows.Forms.Label();
+            this.discordMicStatusPictureBox = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ngenuityStatusPictureBox)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.microphoneStatusPictureBox)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ngenuityMicStatusPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.discordStatusPictureBox)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.discordMicStatusPictureBox)).BeginInit();
             this.SuspendLayout();
             // 
             // pictureBox
@@ -101,14 +104,14 @@
             this.ngenuityStatusPictureBox.TabIndex = 3;
             this.ngenuityStatusPictureBox.TabStop = false;
             // 
-            // microphoneStatusPictureBox
+            // ngenuityMicStatusPictureBox
             // 
-            this.microphoneStatusPictureBox.Location = new System.Drawing.Point(155, 120);
-            this.microphoneStatusPictureBox.Name = "microphoneStatusPictureBox";
-            this.microphoneStatusPictureBox.Size = new System.Drawing.Size(24, 24);
-            this.microphoneStatusPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.microphoneStatusPictureBox.TabIndex = 4;
-            this.microphoneStatusPictureBox.TabStop = false;
+            this.ngenuityMicStatusPictureBox.Location = new System.Drawing.Point(155, 120);
+            this.ngenuityMicStatusPictureBox.Name = "ngenuityMicStatusPictureBox";
+            this.ngenuityMicStatusPictureBox.Size = new System.Drawing.Size(24, 24);
+            this.ngenuityMicStatusPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.ngenuityMicStatusPictureBox.TabIndex = 4;
+            this.ngenuityMicStatusPictureBox.TabStop = false;
             // 
             // discordStatusPictureBox
             // 
@@ -128,14 +131,14 @@
             this.ngenuityStatusLabel.Text = "Label";
             this.ngenuityStatusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // microphoneStatusLabel
+            // ngenuityMicStatusLabel
             // 
-            this.microphoneStatusLabel.Location = new System.Drawing.Point(185, 120);
-            this.microphoneStatusLabel.Name = "microphoneStatusLabel";
-            this.microphoneStatusLabel.Size = new System.Drawing.Size(144, 24);
-            this.microphoneStatusLabel.TabIndex = 7;
-            this.microphoneStatusLabel.Text = "Label";
-            this.microphoneStatusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.ngenuityMicStatusLabel.Location = new System.Drawing.Point(185, 120);
+            this.ngenuityMicStatusLabel.Name = "ngenuityMicStatusLabel";
+            this.ngenuityMicStatusLabel.Size = new System.Drawing.Size(144, 24);
+            this.ngenuityMicStatusLabel.TabIndex = 7;
+            this.ngenuityMicStatusLabel.Text = "Label";
+            this.ngenuityMicStatusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // discordStatusLabel
             // 
@@ -308,11 +311,31 @@
             this.copyrightLabel2.TabIndex = 21;
             this.copyrightLabel2.Text = "Iconography by CAGspecs";
             // 
+            // discordMicStatusLabel
+            // 
+            this.discordMicStatusLabel.Location = new System.Drawing.Point(365, 120);
+            this.discordMicStatusLabel.Name = "discordMicStatusLabel";
+            this.discordMicStatusLabel.Size = new System.Drawing.Size(144, 24);
+            this.discordMicStatusLabel.TabIndex = 27;
+            this.discordMicStatusLabel.Text = "Label";
+            this.discordMicStatusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // discordMicStatusPictureBox
+            // 
+            this.discordMicStatusPictureBox.Location = new System.Drawing.Point(335, 120);
+            this.discordMicStatusPictureBox.Name = "discordMicStatusPictureBox";
+            this.discordMicStatusPictureBox.Size = new System.Drawing.Size(24, 24);
+            this.discordMicStatusPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.discordMicStatusPictureBox.TabIndex = 26;
+            this.discordMicStatusPictureBox.TabStop = false;
+            // 
             // SettingsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(549, 456);
+            this.Controls.Add(this.discordMicStatusLabel);
+            this.Controls.Add(this.discordMicStatusPictureBox);
             this.Controls.Add(this.copyrightLinkLabel1);
             this.Controls.Add(this.versionLabel);
             this.Controls.Add(this.copyrightLabel3);
@@ -331,10 +354,10 @@
             this.Controls.Add(this.runOnStartupCheckBox);
             this.Controls.Add(this.enabledCheckBox);
             this.Controls.Add(this.discordStatusLabel);
-            this.Controls.Add(this.microphoneStatusLabel);
+            this.Controls.Add(this.ngenuityMicStatusLabel);
             this.Controls.Add(this.ngenuityStatusLabel);
             this.Controls.Add(this.discordStatusPictureBox);
-            this.Controls.Add(this.microphoneStatusPictureBox);
+            this.Controls.Add(this.ngenuityMicStatusPictureBox);
             this.Controls.Add(this.ngenuityStatusPictureBox);
             this.Controls.Add(this.descriptionLabel);
             this.Controls.Add(this.titleLabel);
@@ -348,8 +371,9 @@
             this.Load += new System.EventHandler(this.SettingsForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.ngenuityStatusPictureBox)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.microphoneStatusPictureBox)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ngenuityMicStatusPictureBox)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.discordStatusPictureBox)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.discordMicStatusPictureBox)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -361,10 +385,10 @@
         private System.Windows.Forms.Label titleLabel;
         private System.Windows.Forms.Label descriptionLabel;
         private System.Windows.Forms.PictureBox ngenuityStatusPictureBox;
-        private System.Windows.Forms.PictureBox microphoneStatusPictureBox;
+        private System.Windows.Forms.PictureBox ngenuityMicStatusPictureBox;
         private System.Windows.Forms.PictureBox discordStatusPictureBox;
         private System.Windows.Forms.Label ngenuityStatusLabel;
-        private System.Windows.Forms.Label microphoneStatusLabel;
+        private System.Windows.Forms.Label ngenuityMicStatusLabel;
         private System.Windows.Forms.Label discordStatusLabel;
         private System.Windows.Forms.CheckBox enabledCheckBox;
         private System.Windows.Forms.CheckBox runOnStartupCheckBox;
@@ -383,5 +407,7 @@
         private System.Windows.Forms.Label versionLabel;
         private System.Windows.Forms.LinkLabel copyrightLinkLabel1;
         private System.Windows.Forms.Label copyrightLabel2;
+        private System.Windows.Forms.Label discordMicStatusLabel;
+        private System.Windows.Forms.PictureBox discordMicStatusPictureBox;
     }
 }

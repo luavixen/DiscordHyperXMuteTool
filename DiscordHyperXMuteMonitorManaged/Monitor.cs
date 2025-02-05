@@ -54,7 +54,6 @@ namespace DiscordHyperXMuteMonitorManaged
 
         private const int PingMessage = 0x96c0;
         private const int MicrophoneMessage = 0x96c1;
-        private const int NotifyIconMessage = 0x96c2;
 
         private const long PingFromNgenuity           = 0b000010;
         private const long PingFromExplorer           = 0b000011;
@@ -76,7 +75,7 @@ namespace DiscordHyperXMuteMonitorManaged
             var success = SendNotifyMessage(window, message, new IntPtr(wparam), new IntPtr(lparam));
             if (!success)
             {
-                Debug($"SendNotifyMessage failed {Marshal.GetLastWin32Error()}\n");
+                Debug($"SendNotifyMessage failed 0x{Marshal.GetLastWin32Error():X16}\n");
                 return false;
             }
 

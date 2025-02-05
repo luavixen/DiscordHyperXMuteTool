@@ -201,9 +201,122 @@ static void HandleMessage(CWPSTRUCT* messageDetails)
     }
 }
 
+#pragma pack(push, 1)
+typedef struct _BITMAPFILE
+{
+    BITMAPFILEHEADER fileHeader;
+    BITMAPINFOHEADER infoHeader;
+    BYTE data[];
+} BITMAPFILE;
+#pragma pack(pop)
+
+static_assert(sizeof(BITMAPFILE) == sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER));
+
+static BITMAPFILE* EncodeBitmapFile(HBITMAP bitmapHandle)
+{
+    BITMAP bitmap = { 0 };
+
+    if (!GetObjectW(bitmapHandle, sizeof(BITMAP), &bitmap))
+    {
+        Debug(L"EncodeBitmapFile GetObjectW failed\n");
+        return NULL;
+    }
+
+    if (bitmap.bmWidth <= 0 || bitmap.bmHeight <= 0 || bitmap.bmWidth > 1024 || bitmap.bmHeight > 1024)
+    {
+        DebugFormat(L"EncodeBitmapFile unsupported bitmap dimensions %ldx%ld\n", (long)bitmap.bmWidth, (long)bitmap.bmHeight);
+        return NULL;
+    }
+    if (bitmap.bmPlanes != 1)
+    {
+        DebugFormat(L"EncodeBitmapFile unsupported bitmap bmPlanes is %d, expected 1\n", (int)bitmap.bmPlanes);
+        return NULL;
+    }
+    if (bitmap.bmBitsPixel != 24 && bitmap.bmBitsPixel != 32)
+    {
+        DebugFormat(L"EncodeBitmapFile unsupported bitmap bmBitsPixel is %d, expected 24 or 32\n", (int)bitmap.bmBitsPixel);
+        return NULL;
+    }
+
+    // https://learn.microsoft.com/en-ca/windows/win32/gdi/storing-an-image
+
+    SIZE_T bitmapDataSize;
+    bitmapDataSize = bitmap.bmWidth * (LONG)bitmap.bmBitsPixel;
+    bitmapDataSize = bitmapDataSize + 31 & ~31;
+    bitmapDataSize = bitmapDataSize / 8;
+    bitmapDataSize = bitmapDataSize * bitmap.bmHeight;
+
+    SIZE_T bitmapHeaderSize = sizeof(BITMAPFILE);
+    SIZE_T bitmapTotalSize = bitmapHeaderSize + bitmapDataSize;
+
+    BITMAPFILEHEADER fileHeader = { 0 };
+    BITMAPINFOHEADER infoHeader = { 0 };
+
+    fileHeader.bfType = 0x4D42;
+    fileHeader.bfSize = bitmapTotalSize;
+    fileHeader.bfOffBits = bitmapHeaderSize;
+
+    infoHeader.biSize = sizeof(BITMAPINFOHEADER);
+    infoHeader.biWidth = bitmap.bmWidth;
+    infoHeader.biHeight = bitmap.bmHeight;
+    infoHeader.biPlanes = bitmap.bmPlanes;
+    infoHeader.biBitCount = bitmap.bmBitsPixel;
+    infoHeader.biCompression = BI_RGB;
+    infoHeader.biSizeImage = bitmapDataSize;
+    infoHeader.biClrUsed = 0;
+    infoHeader.biClrImportant = 0;
+
+    BITMAPFILE* file = Allocate(bitmapTotalSize);
+    if (!file) return NULL;
+
+    file->fileHeader = fileHeader;
+    file->infoHeader = infoHeader;
+
+    HDC dc = CreateCompatibleDC(NULL);
+    HGDIOBJ dcOldObject = SelectObject(dc, bitmapHandle);
+    GetDIBits(dc, bitmapHandle, 0, bitmap.bmHeight, file->data, (BITMAPINFO*)&infoHeader, DIB_RGB_COLORS);
+    SelectObject(dc, dcOldObject);
+    DeleteDC(dc);
+
+    return file;
+}
+
+static void SendBitmapToTool(BITMAPFILE* bitmapFileData)
+{
+    COPYDATASTRUCT copyDataDetails = { 0 };
+    copyDataDetails.dwData = 0x6a85; // Magical constant, type of data being sent
+    copyDataDetails.cbData = bitmapFileData->fileHeader.bfSize;
+    copyDataDetails.lpData = bitmapFileData;
+
+    HWND window = FindWindowW(TOOL_MESSAGE_WINDOW_CLASS_NAME, NULL);
+    if (!window)
+    {
+        DebugFormatError(GetLastError(), L"FindWindowW failed for tool message window");
+        return;
+    }
+
+    SendMessageTimeoutW(window, WM_COPYDATA, (WPARAM)NULL, (LPARAM)&copyDataDetails, SMTO_BLOCK, 100, NULL);
+}
+
 static void HandleDiscordNotifyIconChange(HICON icon)
 {
-    // TODO Pack icon change into message and send it to the tool message window
+    ICONINFO iconInfo = { 0 };
+    BOOL iconInfoSuccess = GetIconInfo(icon, &iconInfo);
+    if (!iconInfoSuccess)
+    {
+        DebugFormatError(GetLastError(), L"GetIconInfo failed");
+        return;
+    }
+
+    BITMAPFILE* bitmapFileData = EncodeBitmapFile(iconInfo.hbmColor);
+    if (bitmapFileData)
+    {
+        SendBitmapToTool(bitmapFileData);
+        Free(bitmapFileData);
+    }
+
+    if (iconInfo.hbmMask) DeleteObject(iconInfo.hbmMask);
+    if (iconInfo.hbmColor) DeleteObject(iconInfo.hbmColor);
 }
 
 DLLEXPORT LRESULT CALLBACK ExplorerTrayMonitorCallWndProc(int code, WPARAM isOnCurrentThread, LPARAM messageDetailsPointer)

@@ -21,6 +21,10 @@ namespace DiscordHyperXMuteTool
 
             Settings.Initialize();
 
+            // TODO: Replace this placeholder code that doesn't correctly handle errors (thrown by Unmanaged.ConvertError!) with a more robust solution
+            // Ideally, roll this into the same separate system that will be called/used by MessageWindow to handle state updates and issue keypresses
+            // There should be a central class that manages the state of the explorer hook, injected monitor, and sending keypresses
+            Unmanaged.ConvertError(Unmanaged.ExplorerTraySetHook());
             Unmanaged.ConvertError(Unmanaged.InjectMonitorIntoNgenuityProcess(Process.GetProcessesByName("NGenuity2Helper").First().Id));
 
             Application.EnableVisualStyles();
@@ -34,7 +38,7 @@ namespace DiscordHyperXMuteTool
         private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             string title = Application.ProductName;
-            string message = $"An unhandled exception occurred: {e.ExceptionObject}";
+            string message = $"Unhandled exception: {e.ExceptionObject}";
             MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
@@ -84,12 +88,12 @@ namespace DiscordHyperXMuteTool
 
             _stateSubscription = Program.State.SubscribeComputed(state =>
             {
-                menuNgenuityStatus.Text = state.NgenuityStatusText;
-                menuNgenuityStatus.Image = state.NgenuityStatusImage;
-                menuDiscordStatus.Text = state.DiscordStatusText;
-                menuDiscordStatus.Image = state.DiscordStatusImage;
-                menuMicrophoneStatus.Text = state.MicrophoneStatusText;
-                menuMicrophoneStatus.Image = state.MicrophoneStatusImage;
+                menuNgenuityStatus.Text = state.NgenuityProgramStatusText;
+                menuNgenuityStatus.Image = state.NgenuityProgramStatusImage;
+                menuDiscordStatus.Text = state.DiscordProgramStatusText;
+                menuDiscordStatus.Image = state.DiscordProgramStatusImage;
+                menuMicrophoneStatus.Text = state.NgenuityMicStatusText;
+                menuMicrophoneStatus.Image = state.NgenuityMicStatusImage;
             });
 
             _settingsSubscription = Program.Settings.SubscribeComputed(settings =>

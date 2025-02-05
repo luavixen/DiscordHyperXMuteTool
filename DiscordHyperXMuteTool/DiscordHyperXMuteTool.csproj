@@ -163,5 +163,23 @@
       <Name>DiscordHyperXMuteMonitorUnmanaged</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\DiscordTrayIcon_Default.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\DiscordTrayIcon_DefaultPing.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\DiscordTrayIcon_VoiceInactive.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\DiscordTrayIcon_VoiceActive.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\DiscordTrayIcon_Muted.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\DiscordTrayIcon_Deafened.bmp" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

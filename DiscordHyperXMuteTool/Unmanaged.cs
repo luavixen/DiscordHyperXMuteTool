@@ -19,6 +19,9 @@ namespace DiscordHyperXMuteTool
         public static extern IntPtr StringifyError(int error);
 
         [DllImport(DllName)]
+        public static extern void SendKeyboardEvent(Keycode keycode, bool isKeyDown);
+
+        [DllImport(DllName)]
         public static extern IntPtr InjectMonitorIntoNgenuityProcess(int processID);
 
         [DllImport(DllName)]

@@ -131,9 +131,7 @@ LPWSTR StringConcat(LPCWSTR first, ...)
 
     if (buffer)
     {
-        buffer[0] = L'\0';
-
-        wcscat(buffer, first);
+        StringCopyInto(buffer, first);
 
         while ((current = va_arg(arguments2, LPCWSTR)) != NULL)
         {
@@ -301,4 +299,9 @@ BOOL GetProcessPathByID(DWORD processID, LPWSTR buffer)
     CloseHandle(process);
 
     return result;
+}
+
+DLLEXPORT void WINAPI SendKeyboardEvent(DWORD keycode, BOOL isKeyDown)
+{
+    keybd_event((BYTE)keycode, 0, isKeyDown ? 0 : KEYEVENTF_KEYUP, 0);
 }

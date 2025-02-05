@@ -79,6 +79,10 @@ extern WCHAR LibraryPath[MAX_PATH];
 extern HMODULE ExecutableModule;
 extern WCHAR ExecutablePath[MAX_PATH];
 
+// Sends a keypress (either keyup or keydown) to the system using keybd_event
+// Called from DiscordHyperXMuteTool using P/Invoke
+DLLEXPORT void WINAPI SendKeyboardEvent(DWORD keycode, BOOL isKeyDown);
+
 // Injects this DLL into the NGenuity2Helper process and starts the microphone mute state monitor
 // Returns an error message if something goes wrong during injection, or NULL if successful
 // Called from DiscordHyperXMuteTool using P/Invoke

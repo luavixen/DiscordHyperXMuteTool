@@ -4,26 +4,39 @@ using DiscordHyperXMuteTool.Properties;
 
 namespace DiscordHyperXMuteTool
 {
-    internal enum ConnectionStatus
-    {
-        Unknown,
-        Disconnected,
-        Connecting,
-        Connected,
-    }
     internal enum MicrophoneStatus
     {
         Unknown,
         Disconnected,
-        Muted,
         Unmuted,
+        Muted,
+    }
+
+    internal enum NgenuityStatus
+    {
+        Unknown,
+        NotRunning,
+        Disconnected,
+        Injecting,
+        Injected,
+    }
+    internal enum DiscordStatus
+    {
+        Unknown,
+        NotRunning,
+        Disconnected,
+        Hooked,
+        Normal,
+        Muted,
+        Defeaned,
     }
 
     internal sealed class State : Reactive<State>, IDisposable
     {
-        public ConnectionStatus NgenuityStatus = ConnectionStatus.Unknown;
-        public ConnectionStatus DiscordStatus = ConnectionStatus.Unknown;
         public MicrophoneStatus MicrophoneStatus = MicrophoneStatus.Unknown;
+
+        public NgenuityStatus NgenuityStatus = NgenuityStatus.Unknown;
+        public DiscordStatus DiscordStatus = DiscordStatus.Unknown;
 
         private readonly Image _ngenuityEnabledImage, _ngenuityDisabledImage;
         private readonly Image _discordEnabledImage, _discordDisabledImage;
@@ -51,29 +64,30 @@ namespace DiscordHyperXMuteTool
             _microphoneDisabledImage?.Dispose();
         }
 
-        private static string GetConnectionStatusMessage(ConnectionStatus status, string name)
+        public string NgenuityProgramStatusText
         {
-            switch (status)
+            get
             {
-                case ConnectionStatus.Unknown: return $"\u2026 {name} unknown";
-                case ConnectionStatus.Disconnected: return $"\u2717 {name} disconnected";
-                case ConnectionStatus.Connecting: return $"\u2026 {name} connecting";
-                case ConnectionStatus.Connected: return $"\u2713 {name} connected";
-                default: throw new ArgumentOutOfRangeException(nameof(status), status, null);
+                switch (NgenuityStatus)
+                {
+                case NgenuityStatus.Unknown: return "\u2026 NGENUITY unknown";
+                case NgenuityStatus.NotRunning: return "\u2717 NGENUITY not running";
+                case NgenuityStatus.Disconnected: return "\u2717 NGENUITY disconnected";
+                case NgenuityStatus.Injecting: return "\u2026 NGENUITY injecting";
+                case NgenuityStatus.Injected: return "\u2713 NGENUITY injected";
+                default: throw new ArgumentOutOfRangeException(nameof(NgenuityStatus), NgenuityStatus, null);
+                }
             }
         }
-        private static Image GetConnectionStatusImage(ConnectionStatus status, Image enabledImage, Image disabledImage)
+        public Image NgenuityProgramStatusImage
         {
-            return status == ConnectionStatus.Connected ? enabledImage : disabledImage;
+            get
+            {
+                return NgenuityStatus == NgenuityStatus.Injected ? _ngenuityEnabledImage : _ngenuityDisabledImage;
+            }
         }
 
-        public string NgenuityStatusText => GetConnectionStatusMessage(NgenuityStatus, "NGENUITY");
-        public Image NgenuityStatusImage => GetConnectionStatusImage(NgenuityStatus, _ngenuityEnabledImage, _ngenuityDisabledImage);
-
-        public string DiscordStatusText => GetConnectionStatusMessage(DiscordStatus, "Discord");
-        public Image DiscordStatusImage => GetConnectionStatusImage(DiscordStatus, _discordEnabledImage, _discordDisabledImage);
-
-        public string MicrophoneStatusText
+        public string NgenuityMicStatusText
         {
             get
             {
@@ -87,13 +101,73 @@ namespace DiscordHyperXMuteTool
                 }
             }
         }
-        public Image MicrophoneStatusImage
+        public Image NgenuityMicStatusImage
         {
             get
             {
                 if (MicrophoneStatus == MicrophoneStatus.Muted) return _microphoneMutedImage;
                 if (MicrophoneStatus == MicrophoneStatus.Unmuted) return _microphoneUnmutedImage;
                 return _microphoneDisabledImage;
+            }
+        }
+
+        public string DiscordProgramStatusText
+        {
+            get
+            {
+                switch (DiscordStatus)
+                {
+                case DiscordStatus.Unknown: return "\u2026 Discord unknown";
+                case DiscordStatus.NotRunning: return "\u2717 Discord not running";
+                case DiscordStatus.Disconnected: return "\u2717 Discord disconnected";
+                case DiscordStatus.Hooked:
+                case DiscordStatus.Normal:
+                case DiscordStatus.Muted:
+                case DiscordStatus.Defeaned: return "\u2713 Discord connected";
+                default: throw new ArgumentOutOfRangeException(nameof(DiscordStatus), DiscordStatus, null);
+                }
+            }
+        }
+        public Image DiscordProgramStatusImage
+        {
+            get
+            {
+                return DiscordStatus >= DiscordStatus.Hooked ? _discordEnabledImage : _discordDisabledImage;
+            }
+        }
+
+        public string DiscordMicStatusText
+        {
+            get
+            {
+                switch (DiscordStatus)
+                {
+                case DiscordStatus.Unknown:
+                case DiscordStatus.NotRunning:
+                case DiscordStatus.Disconnected:
+                case DiscordStatus.Hooked: return "Microphone disabled";
+                case DiscordStatus.Normal: return "Microphone unmuted";
+                case DiscordStatus.Muted: return "Microphone muted";
+                case DiscordStatus.Defeaned: return "Microphone deafened";
+                default: throw new ArgumentOutOfRangeException(nameof(DiscordStatus), DiscordStatus, null);
+                }
+            }
+        }
+        public Image DiscordMicStatusImage
+        {
+            get
+            {
+                switch (DiscordStatus)
+                {
+                case DiscordStatus.Unknown:
+                case DiscordStatus.NotRunning:
+                case DiscordStatus.Disconnected:
+                case DiscordStatus.Hooked: return _microphoneDisabledImage;
+                case DiscordStatus.Normal: return _microphoneUnmutedImage;
+                case DiscordStatus.Muted:
+                case DiscordStatus.Defeaned: return _microphoneMutedImage;
+                default: throw new ArgumentOutOfRangeException(nameof(DiscordStatus), DiscordStatus, null);
+                }
             }
         }
     }

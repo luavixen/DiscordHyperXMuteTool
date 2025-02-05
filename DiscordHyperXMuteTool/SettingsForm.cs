@@ -24,12 +24,14 @@ namespace DiscordHyperXMuteTool
         {
             _stateSubscription = Program.State.SubscribeComputed(state =>
             {
-                ngenuityStatusPictureBox.Image = state.NgenuityStatusImage;
-                ngenuityStatusLabel.Text = state.NgenuityStatusText;
-                discordStatusPictureBox.Image = state.DiscordStatusImage;
-                discordStatusLabel.Text = state.DiscordStatusText;
-                microphoneStatusPictureBox.Image = state.MicrophoneStatusImage;
-                microphoneStatusLabel.Text = state.MicrophoneStatusText;
+                ngenuityStatusPictureBox.Image = state.NgenuityProgramStatusImage;
+                ngenuityStatusLabel.Text = state.NgenuityProgramStatusText;
+                ngenuityMicStatusPictureBox.Image = state.NgenuityMicStatusImage;
+                ngenuityMicStatusLabel.Text = state.NgenuityMicStatusText;
+                discordStatusPictureBox.Image = state.DiscordProgramStatusImage;
+                discordStatusLabel.Text = state.DiscordProgramStatusText;
+                discordMicStatusPictureBox.Image = state.DiscordMicStatusImage;
+                discordMicStatusLabel.Text = state.DiscordMicStatusText;
             });
 
             _settingsSubscription = Program.Settings.SubscribeComputed(settings =>

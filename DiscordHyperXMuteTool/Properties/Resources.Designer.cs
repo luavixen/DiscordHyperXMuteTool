@@ -81,6 +81,66 @@ namespace DiscordHyperXMuteTool.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap DiscordTrayIcon_Deafened {
+            get {
+                object obj = ResourceManager.GetObject("DiscordTrayIcon_Deafened", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap DiscordTrayIcon_Default {
+            get {
+                object obj = ResourceManager.GetObject("DiscordTrayIcon_Default", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap DiscordTrayIcon_DefaultPing {
+            get {
+                object obj = ResourceManager.GetObject("DiscordTrayIcon_DefaultPing", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap DiscordTrayIcon_Muted {
+            get {
+                object obj = ResourceManager.GetObject("DiscordTrayIcon_Muted", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap DiscordTrayIcon_VoiceActive {
+            get {
+                object obj = ResourceManager.GetObject("DiscordTrayIcon_VoiceActive", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap DiscordTrayIcon_VoiceInactive {
+            get {
+                object obj = ResourceManager.GetObject("DiscordTrayIcon_VoiceInactive", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
         internal static System.Drawing.Icon Icon {
