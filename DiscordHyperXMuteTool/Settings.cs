@@ -13,6 +13,9 @@ namespace DiscordHyperXMuteTool
         public bool SyncWithDiscord = true;
         public Keycode OnMuteKey = Keycode.F20;
         public Keycode OnUnmuteKey = Keycode.F20;
+        public string DiscordProcessName = "Discord";
+
+        private static readonly Settings Defaults = new Settings();
 
         public Settings()
         {
@@ -46,6 +49,16 @@ namespace DiscordHyperXMuteTool
             key.SetValue(name, value, RegistryValueKind.DWord);
         }
 
+        private static string GetRegistryString(RegistryKey key, string name, string defaultValue)
+        {
+            object storedValue = key.GetValue(name);
+            return storedValue as string ?? defaultValue;
+        }
+        private static void SetRegistryString(RegistryKey key, string name, string value)
+        {
+            key.SetValue(name, value, RegistryValueKind.String);
+        }
+
         private void Load()
         {
             try
@@ -54,11 +67,12 @@ namespace DiscordHyperXMuteTool
                 {
                     if (key != null)
                     {
-                        Enabled = GetRegistryInt(key, nameof(Enabled), 1) != 0;
-                        RunOnStartup = GetRegistryInt(key, nameof(RunOnStartup), 1) != 0;
-                        SyncWithDiscord = GetRegistryInt(key, nameof(SyncWithDiscord), 1) != 0;
-                        OnMuteKey = (Keycode)GetRegistryInt(key, nameof(OnMuteKey), (int)Keycode.F20);
-                        OnUnmuteKey = (Keycode)GetRegistryInt(key, nameof(OnUnmuteKey), (int)Keycode.F20);
+                        Enabled = GetRegistryInt(key, nameof(Enabled), Defaults.Enabled ? 1 : 0) != 0;
+                        RunOnStartup = GetRegistryInt(key, nameof(RunOnStartup), Defaults.RunOnStartup ? 1 : 0) != 0;
+                        SyncWithDiscord = GetRegistryInt(key, nameof(SyncWithDiscord), Defaults.SyncWithDiscord ? 1 : 0) != 0;
+                        OnMuteKey = (Keycode)GetRegistryInt(key, nameof(OnMuteKey), (int)Defaults.OnMuteKey);
+                        OnUnmuteKey = (Keycode)GetRegistryInt(key, nameof(OnUnmuteKey), (int)Defaults.OnUnmuteKey);
+                        DiscordProcessName = GetRegistryString(key, nameof(DiscordProcessName), Defaults.DiscordProcessName);
                     }
                 }
             }
@@ -79,6 +93,7 @@ namespace DiscordHyperXMuteTool
                         SetRegistryInt(key, nameof(SyncWithDiscord), SyncWithDiscord ? 1 : 0);
                         SetRegistryInt(key, nameof(OnMuteKey), (int)OnMuteKey);
                         SetRegistryInt(key, nameof(OnUnmuteKey), (int)OnUnmuteKey);
+                        SetRegistryString(key, nameof(DiscordProcessName), DiscordProcessName);
                     }
                 }
             }

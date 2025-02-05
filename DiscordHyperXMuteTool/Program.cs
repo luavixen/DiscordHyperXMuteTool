@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Drawing;
-using System.Linq;
 using System.Windows.Forms;
 using DiscordHyperXMuteTool.Properties;
 
@@ -12,6 +10,7 @@ namespace DiscordHyperXMuteTool
         public static readonly State State = new State();
         public static readonly Settings Settings = new Settings();
 
+        public static Manager Manager { get; private set; }
         public static MessageWindow MessageWindow { get; private set; }
 
         [STAThread]
@@ -19,16 +18,15 @@ namespace DiscordHyperXMuteTool
         {
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
 
-            Settings.Initialize();
+            Debug("Hello, world! :3c");
 
-            // TODO: Replace this placeholder code that doesn't correctly handle errors (thrown by Unmanaged.ConvertError!) with a more robust solution
-            // Ideally, roll this into the same separate system that will be called/used by MessageWindow to handle state updates and issue keypresses
-            // There should be a central class that manages the state of the explorer hook, injected monitor, and sending keypresses
-            Unmanaged.ConvertError(Unmanaged.ExplorerTraySetHook());
-            Unmanaged.ConvertError(Unmanaged.InjectMonitorIntoNgenuityProcess(Process.GetProcessesByName("NGenuity2Helper").First().Id));
+            Settings.Initialize();
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+
+            Manager = new Manager();
+            Manager.Start();
 
             MessageWindow = new MessageWindow();
 
@@ -39,7 +37,13 @@ namespace DiscordHyperXMuteTool
         {
             string title = Application.ProductName;
             string message = $"Unhandled exception: {e.ExceptionObject}";
+            Debug(message);
             MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+        public static void Debug(string message)
+        {
+            Console.WriteLine("[DiscordHyperXMuteTool] " + message);
         }
     }
 

@@ -24,10 +24,12 @@ namespace DiscordHyperXMuteMonitorManaged
 
         private static int Start(string argument)
         {
+            Debug("Starting monitor thread...");
             lock (_threadLock)
             {
                 if (_thread != null && _thread.IsAlive)
                 {
+                    Debug("Monitor thread already started!");
                     return 0;
                 }
                 try
@@ -38,6 +40,7 @@ namespace DiscordHyperXMuteMonitorManaged
                         IsBackground = true
                     };
                     _thread.Start();
+                    Debug("Monitor thread started successfully!");
                     return 0;
                 }
                 catch (Exception cause)
@@ -136,7 +139,7 @@ namespace DiscordHyperXMuteMonitorManaged
                     Thread.Sleep(100);
                 }
 
-                Debug("Exiting, bye!\n");
+                Debug("Exiting due to update message delivery failure, bye!\n");
             }
             catch (Exception cause)
             {

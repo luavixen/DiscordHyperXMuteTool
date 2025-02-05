@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using static DiscordHyperXMuteTool.Unmanaged;
 
@@ -30,15 +31,35 @@ namespace DiscordHyperXMuteTool
             GC.SuppressFinalize(this);
         }
 
+        private static void ExecuteOnMainThread(Action action)
+        {
+            var timer = new Timer();
+            timer.Tick += (sender, e) =>
+            {
+                timer.Stop();
+                timer.Dispose();
+                var actionDelegate = action;
+                action = null;
+                actionDelegate.Invoke();
+            };
+            timer.Interval = 1;
+            timer.Start();
+        }
+
         private const int PingMessage = 0x96c0;
         private const int MicrophoneMessage = 0x96c1;
-        
-        private const long PingFromNgenuity           = 0b000010;
-        private const long PingFromExplorer           = 0b000011;
-        private const long PingMicrophoneDisconnected = 0b001000;
-        private const long PingMicrophoneConnected    = 0b001100;
-        private const long PingMicrophoneUnmuted      = 0b100000;
-        private const long PingMicrophoneMuted        = 0b110000;
+
+        [Flags]
+        private enum PingFlags : long
+        {
+            None = 0,
+            PingFromNgenuity = 0b000010,
+            PingFromExplorer = 0b000011,
+            PingMicrophoneDisconnected = 0b001000,
+            PingMicrophoneConnected = 0b001100,
+            PingMicrophoneUnmuted = 0b100000,
+            PingMicrophoneMuted = 0b110000,
+        }
 
         private const int WM_COPYDATA = 0x004a;
 
@@ -76,9 +97,50 @@ namespace DiscordHyperXMuteTool
             //
             // Note that pings are only sent by the injected Ngenuity monitor, I decided against implementing it for the explorer hook
 
-            Debug($"Ping: {wparam} 0x{lparam:X16}\n");
+            if (wparam == 0 || lparam == 0)
+            {
+                return;
+            }
 
-            // TODO: Implement handling of ping messages, update the state accordingly and tie this code into a separate system that issue keypresses as appropriate
+            var flags = (PingFlags)lparam;
+
+            if (flags.HasFlag(PingFlags.PingFromNgenuity))
+            {
+                bool isMicrophoneConnected;
+                if (flags.HasFlag(PingFlags.PingMicrophoneConnected))
+                {
+                    isMicrophoneConnected = true;
+                }
+                else if (flags.HasFlag(PingFlags.PingMicrophoneDisconnected))
+                {
+                    isMicrophoneConnected = false;
+                }
+                else
+                {
+                    // Missing microphone connection status; ignore the message
+                    return;
+                }
+
+                bool isMicrophoneMuted;
+                if (flags.HasFlag(PingFlags.PingMicrophoneMuted))
+                {
+                    isMicrophoneMuted = true;
+                }
+                else if (flags.HasFlag(PingFlags.PingMicrophoneUnmuted))
+                {
+                    isMicrophoneMuted = false;
+                }
+                else
+                {
+                    // Missing microphone mute status; ignore the message
+                    return;
+                }
+
+                ExecuteOnMainThread(() =>
+                {
+                    Program.Manager.HandleNgenuityPing((int)wparam, isMicrophoneConnected, isMicrophoneMuted);
+                });
+            }
         }
 
         private void OnMicrophoneMessage(long wparam, long lparam)
@@ -87,11 +149,15 @@ namespace DiscordHyperXMuteTool
             // lparam is either 0 for unmuted or 1 for muted
             // If wparam is 0 or lparam is not 0 or 1, ignore it!
 
-            Debug($"Microphone: 0x{wparam:X16} 0x{lparam:X16}\n");
+            if (wparam == 0 || !(lparam == 0 || lparam == 1))
+            {
+                return;
+            }
 
-            // TODO: Tie this into a system that manages the state properly and issues keypresses as appropriate, replace this placeholder code
-            Program.State.MicrophoneStatus = lparam != 0 ? MicrophoneStatus.Muted : MicrophoneStatus.Unmuted;
-            Program.State.Update();
+            ExecuteOnMainThread(() =>
+            {
+                Program.Manager.HandleNgenuityMicrophoneMuted(wparam, lparam != 0);
+            });
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -112,10 +178,29 @@ namespace DiscordHyperXMuteTool
             // The COPYDATASTRUCT contains a valid BMP bitmap image of the tray icon in 24 or 32-bit RGB format
             // The dwData field is always NotifyIconDataType (ignore if it's not)
 
-            Debug($"WM_COPYDATA: 0x{wparam:X16} 0x{lparam:X16}\n");
+            if (wparam != 0 || lparam == 0)
+            {
+                return;
+            }
 
-            // TODO: Copy the tray icon image from the COPYDATASTRUCT into a byte[] then asynchronously compare it to the known Discord tray icon images
-            // TODO: This should be part of the same central system that controls state updates and issues keypresses as previously mentioned
+            COPYDATASTRUCT copyDataDetails = Marshal.PtrToStructure<COPYDATASTRUCT>(new IntPtr(lparam));
+
+            if (copyDataDetails.dwData != (IntPtr)NotifyIconDataType)
+            {
+                return;
+            }
+            if (copyDataDetails.cbData <= 0 || copyDataDetails.lpData == IntPtr.Zero)
+            {
+                return;
+            }
+
+            var iconBitmapBytes = new byte[copyDataDetails.cbData];
+            Marshal.Copy(copyDataDetails.lpData, iconBitmapBytes, 0, copyDataDetails.cbData);
+
+            ExecuteOnMainThread(() =>
+            {
+                Program.Manager.HandleDiscordNotifyIconChange(iconBitmapBytes);
+            });
         }
     }
 }

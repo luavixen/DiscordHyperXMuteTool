@@ -145,10 +145,10 @@ namespace DiscordHyperXMuteTool
                 case DiscordStatus.Unknown:
                 case DiscordStatus.NotRunning:
                 case DiscordStatus.Disconnected:
-                case DiscordStatus.Hooked: return "Microphone disabled";
-                case DiscordStatus.Normal: return "Microphone unmuted";
-                case DiscordStatus.Muted: return "Microphone muted";
-                case DiscordStatus.Defeaned: return "Microphone deafened";
+                case DiscordStatus.Hooked: return "Discord voice unknown";
+                case DiscordStatus.Normal: return "Discord voice unmuted";
+                case DiscordStatus.Muted: return "Discord voice muted";
+                case DiscordStatus.Defeaned: return "Discord voice deafened";
                 default: throw new ArgumentOutOfRangeException(nameof(DiscordStatus), DiscordStatus, null);
                 }
             }
